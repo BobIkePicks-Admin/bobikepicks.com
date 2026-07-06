@@ -14,77 +14,99 @@
       </a>
       <nav class="nav-links">
         <a href="index.html">View store ↗</a>
+        <a href="#" id="logoutBtn" class="hidden">Log out</a>
       </nav>
     </div>
   </header>
 
   <div class="admin-wrap">
 
-    <!-- Status banner -->
-    <div id="banner" class="status-banner off">
-      <div class="big"><span id="bannerDot">🔴</span> <span id="bannerText">Picks are OFF</span></div>
-      <div id="bannerCountdown"></div>
-    </div>
-
-    <!-- Step 1: upload -->
-    <div class="card" style="margin-bottom:22px;">
-      <div class="hd"><h3>1 · Today's picks file</h3></div>
-      <div class="bd">
-        <div class="upload-zone" id="uploadZone">
-          <div class="ic">📄</div>
-          <div id="uploadLabel"><strong>Click to choose today's PDF</strong></div>
-          <div class="muted" id="uploadHint">PDF from your computer — that's the file buyers receive.</div>
-          <div class="fname hidden" id="fileName"></div>
+    <!-- LOGIN VIEW -->
+    <div id="loginView" class="hidden">
+      <div class="card">
+        <div class="hd"><h3>Admin sign in</h3></div>
+        <div class="bd">
+          <p class="muted" style="margin-top:0;">
+            Enter your admin email. We'll send you a one-time login link — no password to remember.
+          </p>
+          <label class="fld" for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="you@email.com" />
+          <div style="height:12px"></div>
+          <button class="btn btn-primary" id="loginBtn">Email me a login link</button>
+          <p class="muted" id="loginMsg" style="margin-bottom:0;"></p>
         </div>
-        <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
       </div>
     </div>
 
-    <!-- Step 2: publish + auto take-down -->
-    <div class="card" style="margin-bottom:22px;">
-      <div class="hd"><h3>2 · Put them on sale</h3></div>
-      <div class="bd">
-        <div class="row between">
-          <div>
-            <label class="fld" for="autoTime" style="margin-bottom:4px;">Auto take-down time (optional)</label>
-            <div class="muted" style="margin-bottom:8px;">Sales close automatically at this time so you never forget.</div>
+    <!-- APP VIEW -->
+    <div id="appView" class="hidden">
+
+      <!-- Status banner -->
+      <div id="banner" class="status-banner off">
+        <div class="big"><span id="bannerDot">🔴</span> <span id="bannerText">Picks are OFF</span></div>
+        <div id="bannerCountdown"></div>
+      </div>
+
+      <!-- Step 1: upload -->
+      <div class="card" style="margin-bottom:22px;">
+        <div class="hd"><h3>1 · Today's picks file</h3></div>
+        <div class="bd">
+          <div class="upload-zone" id="uploadZone">
+            <div class="ic">📄</div>
+            <div id="uploadLabel"><strong>Click to choose today's PDF</strong></div>
+            <div class="muted" id="uploadHint">PDF from your computer — that's the file buyers receive.</div>
+            <div class="fname hidden" id="fileName"></div>
           </div>
-          <input type="time" id="autoTime" style="width:140px;" />
-        </div>
-
-        <div class="row mt">
-          <button class="btn btn-gold" id="publishBtn">✅ Publish — put picks on sale</button>
-          <button class="btn btn-danger hidden" id="takedownBtn">■ Take picks down</button>
-        </div>
-        <div class="row mt">
-          <button class="btn btn-ghost btn-sm" id="testBtn">✉ Send a test email to myself</button>
+          <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
         </div>
       </div>
+
+      <!-- Step 2: publish + auto take-down -->
+      <div class="card" style="margin-bottom:22px;">
+        <div class="hd"><h3>2 · Put them on sale</h3></div>
+        <div class="bd">
+          <div class="row between">
+            <div>
+              <label class="fld" for="autoTime" style="margin-bottom:4px;">Auto take-down time (optional)</label>
+              <div class="muted" style="margin-bottom:8px;">Sales close automatically at this time so you never forget.</div>
+            </div>
+            <input type="time" id="autoTime" style="width:140px;" />
+          </div>
+
+          <div class="row mt">
+            <button class="btn btn-primary" id="publishBtn">✅ Publish — put picks on sale</button>
+            <button class="btn btn-danger hidden" id="takedownBtn">■ Take picks down</button>
+          </div>
+          <div class="row mt">
+            <button class="btn btn-ghost btn-sm" id="testBtn">✉ Send a test email to myself</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: sales -->
+      <div class="card">
+        <div class="hd">
+          <h3>3 · Recent sales</h3>
+          <span class="muted" id="salesCount"></span>
+        </div>
+        <div class="bd">
+          <table class="sales">
+            <thead><tr><th>Buyer email</th><th>Time</th><th>Status</th><th></th></tr></thead>
+            <tbody id="salesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="muted" style="text-align:center; margin-top:18px;">
+        Signed in as <span id="whoami"></span>
+      </p>
     </div>
-
-    <!-- Step 3: sales -->
-    <div class="card">
-      <div class="hd">
-        <h3>3 · Recent sales</h3>
-        <span class="muted" id="salesCount"></span>
-      </div>
-      <div class="bd">
-        <table class="sales">
-          <thead><tr><th>Buyer email</th><th>Time</th><th>Status</th><th></th></tr></thead>
-          <tbody id="salesBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <p class="muted" style="text-align:center; margin-top:18px;">
-      Demo admin — no real login, files, or payments yet.
-      <a href="#" id="resetLink">Reset demo</a>
-    </p>
   </div>
 
   <div class="toast" id="toast"></div>
 
-  <script src="assets/state.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/config.js"></script>
   <script src="assets/admin.js"></script>
 </body>
 </html>

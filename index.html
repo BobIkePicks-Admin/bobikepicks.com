@@ -50,7 +50,7 @@
           <label class="fld" for="email">Where should we send the PDF?</label>
           <input type="email" id="email" placeholder="you@email.com" />
           <div style="height:12px"></div>
-          <button onclick="window.location.href='https://www.paypal.com/webapps/hermes?token=45W72553TX6191536&useraction=commit&wpsFlowRedirectToXorouterSkipHermesStartTime=1782868953208&flowType=WPS&mfid=1782868952968_f76669014b70b'" class="btn btn-paypal" id="payBtn"><i>Pay<b>Pal</b></i> &nbsp;— Pay $10</button>
+          <button class="btn btn-paypal" id="payBtn"><i>Pay<b>Pal</b></i> &nbsp;— Pay $10</button>
           <p class="fineprint">🔒 Secure checkout via PayPal · pay with PayPal or any card</p>
         </div>
 
@@ -97,17 +97,8 @@
     </div>
   </footer>
 
-  <!-- DEMO TOOLBAR (not part of the real site) -->
-  <div class="demo-bar">
-    <span class="tag">Demo</span>
-    <span id="demoStatusLabel">Picks: OFF</span>
-    <button id="demoToggle">Flip to LIVE</button>
-    <a href="admin.html">Open Bob's admin →</a>
-  </div>
-
   <div class="toast" id="toast"></div>
 
-  <script src="assets/state.js"></script>
   <script src="assets/store.js"></script>
 </body>
 </html>
