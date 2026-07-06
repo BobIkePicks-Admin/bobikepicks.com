@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BobIkePicks.com - Admin</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-inner container">
+      <a class="brand" href="index.html">
+        <span class="name">Bob Ike Picks<small>Admin</small></span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">View store ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="admin-wrap">
+
+    <!-- Status banner -->
+    <div id="banner" class="status-banner off">
+      <div class="big"><span id="bannerDot">🔴</span> <span id="bannerText">Picks are OFF</span></div>
+      <div id="bannerCountdown"></div>
+    </div>
+
+    <!-- Step 1: upload -->
+    <div class="card" style="margin-bottom:22px;">
+      <div class="hd"><h3>1 · Today's picks file</h3></div>
+      <div class="bd">
+        <div class="upload-zone" id="uploadZone">
+          <div class="ic">📄</div>
+          <div id="uploadLabel"><strong>Click to choose today's PDF</strong></div>
+          <div class="muted" id="uploadHint">PDF from your computer — that's the file buyers receive.</div>
+          <div class="fname hidden" id="fileName"></div>
+        </div>
+        <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
+      </div>
+    </div>
+
+    <!-- Step 2: publish + auto take-down -->
+    <div class="card" style="margin-bottom:22px;">
+      <div class="hd"><h3>2 · Put them on sale</h3></div>
+      <div class="bd">
+        <div class="row between">
+          <div>
+            <label class="fld" for="autoTime" style="margin-bottom:4px;">Auto take-down time (optional)</label>
+            <div class="muted" style="margin-bottom:8px;">Sales close automatically at this time so you never forget.</div>
+          </div>
+          <input type="time" id="autoTime" style="width:140px;" />
+        </div>
+
+        <div class="row mt">
+          <button class="btn btn-gold" id="publishBtn">✅ Publish — put picks on sale</button>
+          <button class="btn btn-danger hidden" id="takedownBtn">■ Take picks down</button>
+        </div>
+        <div class="row mt">
+          <button class="btn btn-ghost btn-sm" id="testBtn">✉ Send a test email to myself</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: sales -->
+    <div class="card">
+      <div class="hd">
+        <h3>3 · Recent sales</h3>
+        <span class="muted" id="salesCount"></span>
+      </div>
+      <div class="bd">
+        <table class="sales">
+          <thead><tr><th>Buyer email</th><th>Time</th><th>Status</th><th></th></tr></thead>
+          <tbody id="salesBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="muted" style="text-align:center; margin-top:18px;">
+      Demo admin — no real login, files, or payments yet.
+      <a href="#" id="resetLink">Reset demo</a>
+    </p>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/state.js"></script>
+  <script src="assets/admin.js"></script>
+</body>
+</html>

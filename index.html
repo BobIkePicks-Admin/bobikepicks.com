@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BobIkePicks.com</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav">
+    <div class="nav-inner container">
+      <a class="brand" href="index.html">
+        <span class="name">BobIkePicks<small>Horse Racing Selections</small></span>
+      </a>
+    </div>
+  </header>
+
+  <!-- HERO + BUY CARD -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <div class="eyebrow">Trusted by serious horseplayers</div>
+        <h1>The premier SoCal handicapper</h1>
+        <p class="lead">
+          Bob Ike has covered the Southern California racing circuit for over 40 years, where he was the leading public handicapper at countless meets
+        </p>
+        <div class="trust-row">
+          <div class="stat"><div class="num">$10</div><div class="lbl">Per card, featuring full-card selections, 3 Best Play races with betting strategy, and a Pick 5 ticket<br><br><i  style="text-transform: none;">Selections available on Saturdays, Sundays and holiday Mondays after 9:00 a.m. PT</i></div></div>
+        </div>
+      </div>
+
+      <!-- Purchase card (state-driven) -->
+      <div id="buy" class="buy-card">
+        <div class="card-head">
+          <strong>Today's Picks</strong>
+          <span id="statusBadge" class="badge off"><span class="dot"></span><span class="txt">Not Available yet</span></span>
+        </div>
+
+        <!-- LIVE state -->
+        <div id="liveState" class="card-body hidden">
+          <div class="price">$<span id="priceVal">10</span> <small>/ today's card</small></div>
+          <p class="muted" id="liveDate" style="margin:6px 0 0;"></p>
+          <ul class="includes">
+            <li>Bob Ike's full selections for today at Del Mar</li>
+			<li>3 Best Play races with betting strategy</li>
+			<li>Pick 5 ticket</li>
+            <li>Emailed to you automatically immediately after payment</li>
+          </ul>
+          <label class="fld" for="email">Where should we send the PDF?</label>
+          <input type="email" id="email" placeholder="you@email.com" />
+          <div style="height:12px"></div>
+          <button onclick="window.location.href='https://www.paypal.com/webapps/hermes?token=45W72553TX6191536&useraction=commit&wpsFlowRedirectToXorouterSkipHermesStartTime=1782868953208&flowType=WPS&mfid=1782868952968_f76669014b70b'" class="btn btn-paypal" id="payBtn"><i>Pay<b>Pal</b></i> &nbsp;— Pay $10</button>
+          <p class="fineprint">🔒 Secure checkout via PayPal · pay with PayPal or any card</p>
+        </div>
+
+        <!-- OFF state -->
+        <div id="offState" class="card-body">
+          <div class="off-state">
+            <div class="lock">🔒</div>
+            <h3>Today's picks are not available</h3>
+            <p>Enter your email to be notified the second they're posted</p>
+            <input type="email" id="notifyEmail" placeholder="you@email.com" />
+            <div style="height:10px"></div>
+            <button class="btn btn-dark" id="notifyBtn">Notify me</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACK RECORD (placeholder) -->
+  <section class="block alt" id="record">
+    <div class="container">
+      <h2>Meet Bob</h2><br>
+      <div class="meet">
+      <figure class="meet-photo">
+        <img src="assets/John_and_Bob.png" alt="Bob Ike at the track" />
+      </figure>
+      <p class="sub">Bob Ike has covered the Southern California racing circuit for over 40 years, where he was the leading public handicapper at countless meets. Ike’s graded handicap selections have appeared in the Los Angeles Daily News, San Diego Union-Tribune, Orange County Register and South Bay Daily Breeze.
+	  <br><br>
+	  A lifelong racing fan, Ike got his first taste of racing as an infant, being toted to the Del Mar racetrack well before his first birthday. His passion for racing was handed down from his grandmother and father, who taught him how to read the Racing Form at a young age. “I got hooked early, and went to Del Mar as often as possible. In fact, I was the only kid I knew who never had a summer job,” joked Ike.
+	  <br><br>
+	  Although based in Southern California, Ike has attended most of the Breeders’ Cup runnings, as well as the 1994 and 2007 Kentucky Derbies. Ike also has been to racetracks in Australia and Ireland.
+	  <br><br>
+	  Known for his keen ability to watch races and analyze video, Ike is unmatched at evaluating pace and trip scenarios. “For me, the whole handicapping process starts with watching races and video tape--and putting trip notes in my program. Without laying that foundation, I would feel lost just opening up the Form and reading the past performances. It would be the equivalent of someone trying to make sense of a baseball game by just reading the box score, without actually having watched the game. From there I try to figure out how a race will unfold from a pace and trip standpoint.”
+	  <br><br>
+	  Ike, who is a partner in Horsebills.com and co-host of the <a href="https://thoroughbredla.com/">Thoroughbred Los Angeles</a> radio show, is a graduate of Occidental College and a member of the school's basketball Hall of Fame.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <span class="gold">Bob Ike Picks</span> · Premium horse racing selections<br />
+      Prototype — placeholder content for review · © 2026
+    </div>
+  </footer>
+
+  <!-- DEMO TOOLBAR (not part of the real site) -->
+  <div class="demo-bar">
+    <span class="tag">Demo</span>
+    <span id="demoStatusLabel">Picks: OFF</span>
+    <button id="demoToggle">Flip to LIVE</button>
+    <a href="admin.html">Open Bob's admin →</a>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/state.js"></script>
+  <script src="assets/store.js"></script>
+</body>
+</html>
