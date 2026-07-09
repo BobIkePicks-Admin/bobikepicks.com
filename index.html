@@ -47,10 +47,21 @@
 			<li>Pick 5 ticket</li>
             <li>Emailed to you automatically immediately after payment</li>
           </ul>
-          <label class="fld" for="email">Where should we send the PDF?</label>
-          <input type="email" id="email" placeholder="you@email.com" />
-          <div style="height:12px"></div>
-          <button class="btn btn-paypal" id="payBtn"><i>Pay<b>Pal</b></i> &nbsp;— Pay $10</button>
+          <form id="buyForm" action="https://www.paypal.com/cgi-bin/webscr" method="post">
+            <input type="hidden" name="cmd" value="_xclick" />
+            <input type="hidden" name="business" value="bob@bobikepicks.com" />
+            <input type="hidden" name="item_name" value="BobIkePicks Daily Selections" />
+            <input type="hidden" name="currency_code" value="USD" />
+            <input type="hidden" name="no_shipping" value="1" />
+            <input type="hidden" name="amount" id="ppAmount" value="10.00" />
+            <input type="hidden" name="notify_url" id="ppNotify" value="" />
+            <input type="hidden" name="return" id="ppReturn" value="" />
+            <input type="hidden" name="cancel_return" id="ppCancel" value="" />
+            <label class="fld" for="email">Confirmation email (where we send the PDF)</label>
+            <input type="email" id="email" name="custom" required placeholder="you@email.com" />
+            <div style="height:12px"></div>
+            <button type="submit" class="btn btn-paypal" id="payBtn"><i>Pay<b>Pal</b></i> &nbsp;— Pay $<span id="btnPrice">10</span></button>
+          </form>
           <p class="fineprint">🔒 Secure checkout via PayPal · pay with PayPal or any card</p>
         </div>
 
