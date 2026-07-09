@@ -171,8 +171,16 @@
     }
   });
 
-  $("testBtn").addEventListener("click", () => {
-    showToast("Email delivery isn't connected yet — that comes with the email setup.");
+  $("testBtn").addEventListener("click", async () => {
+    $("testBtn").disabled = true;
+    try {
+      const { sentTo } = await authFetch("/api/admin/test-email", { method: "POST" });
+      showToast("Test email sent to " + sentTo + " — check your inbox (and spam).");
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      $("testBtn").disabled = false;
+    }
   });
 
   // ---------- render ----------
