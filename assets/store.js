@@ -27,11 +27,22 @@
     $("offState").classList.toggle("hidden", live);
 
     if (live) {
-      $("priceVal").textContent = Math.round((state.priceCents || 1000) / 100);
+      const dollars = Math.round((state.priceCents || 1000) / 100);
+      $("priceVal").textContent = dollars;
+      $("btnPrice").textContent = dollars;
+
       const d = state.publishedAt ? new Date(state.publishedAt) : new Date();
       $("liveDate").textContent =
         "Card for " +
         d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+      // Fill the PayPal form so it targets THIS origin (works on vercel.app
+      // now and on bobikepicks.com after the domain cutover — no edits needed).
+      const origin = window.location.origin;
+      $("ppAmount").value = (Math.round(state.priceCents || 1000) / 100).toFixed(2);
+      $("ppNotify").value = origin + "/api/paypal-ipn";
+      $("ppReturn").value = origin + "/thanks.html";
+      $("ppCancel").value = origin + "/";
     }
   }
 
@@ -46,16 +57,8 @@
     }
   }
 
-  // --- buy button (PayPal wiring comes later) ---
-  $("payBtn").addEventListener("click", () => {
-    const email = $("email").value.trim();
-    if (!email || !email.includes("@")) {
-      showToast("Enter a valid email so we can send the PDF.");
-      $("email").focus();
-      return;
-    }
-    showToast("Checkout is being connected to PayPal — almost there!");
-  });
+  // The buy button is a native PayPal form submit (see index.html #buyForm).
+  // The email field is `custom`, carried through PayPal and returned in the IPN.
 
   // --- notify-me capture (storefront closed) ---
   $("notifyBtn").addEventListener("click", () => {
