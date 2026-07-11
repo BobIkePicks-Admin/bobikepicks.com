@@ -3,6 +3,9 @@
    Puts the store LIVE. Requires a PDF to have been uploaded first. */
 
 import { getAdminClient, getState, requireAdmin, sendError, httpError } from "../../lib/supabase.js";
+import { sendNotifyBatch } from "../../lib/email.js";
+
+const NOTIFY_DEDUPE_MS = 6 * 60 * 60 * 1000; // don't re-blast within 6 hours
 
 export default async function handler(req, res) {
   try {
@@ -31,7 +34,29 @@ export default async function handler(req, res) {
       .single();
     if (error) throw error;
 
-    res.status(200).json({ state: data });
+    // Notify the mailing list — once per posting (guard against quick re-publish).
+    let notified = 0;
+    try {
+      const lastNotified = data.last_notified_at ? new Date(data.last_notified_at).getTime() : 0;
+      if (Date.now() - lastNotified > NOTIFY_DEDUPE_MS) {
+        const { data: subs } = await supa
+          .from("notify_list")
+          .select("email, token")
+          .is("unsubscribed_at", null);
+        if (subs && subs.length) {
+          const base = "https://" + (req.headers.host || "bobikepicks-com.vercel.app");
+          notified = await sendNotifyBatch(subs, { siteUrl: base });
+          await supa
+            .from("site_state")
+            .update({ last_notified_at: new Date().toISOString() })
+            .eq("id", 1);
+        }
+      }
+    } catch (notifyErr) {
+      console.error("Notify broadcast failed:", notifyErr.message);
+    }
+
+    res.status(200).json({ state: data, notified });
   } catch (err) {
     sendError(res, err);
   }
