@@ -60,6 +60,31 @@
   // The buy button is a native PayPal form submit (see index.html #buyForm).
   // The email field is `custom`, carried through PayPal and returned in the IPN.
 
+  // --- notify-me signup (storefront closed) ---
+  $("notifyBtn").addEventListener("click", async () => {
+    const email = $("notifyEmail").value.trim();
+    if (!email || !email.includes("@")) {
+      showToast("Enter a valid email to be notified.");
+      return;
+    }
+    $("notifyBtn").disabled = true;
+    try {
+      const res = await fetch("/api/notify-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || "Something went wrong.");
+      showToast("You're on the list — we'll email you the moment picks are posted.");
+      $("notifyEmail").value = "";
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      $("notifyBtn").disabled = false;
+    }
+  });
+
   refresh();
   // Re-check every 30s so the page reflects publish / auto-take-down.
   setInterval(refresh, 30000);

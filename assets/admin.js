@@ -143,13 +143,16 @@
     $("publishBtn").disabled = true;
     try {
       const autoTakedownAt = computeAutoTakedown($("autoTime").value);
-      const { state } = await authFetch("/api/admin/publish", {
+      const { state, notified } = await authFetch("/api/admin/publish", {
         method: "POST",
         body: JSON.stringify({ autoTakedownAt }),
       });
       currentState = state;
       renderState();
-      showToast("Picks are LIVE — buyers can purchase now.");
+      showToast(
+        "Picks are LIVE" +
+          (notified ? ` — ${notified} subscriber${notified > 1 ? "s" : ""} notified.` : ".")
+      );
     } catch (err) {
       showToast(err.message);
     } finally {
