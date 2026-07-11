@@ -15,8 +15,18 @@ export default async function handler(req, res) {
       .order("created_at", { ascending: false })
       .limit(25);
 
+    const { count: subscriberCount } = await supa
+      .from("notify_list")
+      .select("*", { count: "exact", head: true })
+      .is("unsubscribed_at", null);
+
     res.setHeader("Cache-Control", "no-store");
-    res.status(200).json({ email: user.email, state, sales: sales || [] });
+    res.status(200).json({
+      email: user.email,
+      state,
+      sales: sales || [],
+      subscriberCount: subscriberCount || 0,
+    });
   } catch (err) {
     sendError(res, err);
   }
