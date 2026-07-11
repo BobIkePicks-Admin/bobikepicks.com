@@ -186,6 +186,30 @@
     }
   });
 
+  $("addSubBtn").addEventListener("click", async () => {
+    const emails = $("addEmails").value.trim();
+    if (!emails) {
+      showToast("Enter at least one email.");
+      return;
+    }
+    $("addSubBtn").disabled = true;
+    try {
+      const { added, invalid } = await authFetch("/api/admin/add-subscribers", {
+        method: "POST",
+        body: JSON.stringify({ emails }),
+      });
+      let msg = `Added ${added} to the list.`;
+      if (invalid && invalid.length) msg += ` (${invalid.length} skipped as invalid.)`;
+      showToast(msg);
+      $("addEmails").value = "";
+      await loadState();
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      $("addSubBtn").disabled = false;
+    }
+  });
+
   // ---------- render ----------
   function renderState() {
     const s = currentState;
@@ -266,6 +290,7 @@
     const data = await authFetch("/api/admin/state");
     currentState = data.state;
     renderSales(data.sales);
+    $("subCount").textContent = (data.subscriberCount || 0) + " subscribers";
     renderState();
   }
 
