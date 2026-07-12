@@ -58,6 +58,7 @@ export default async function handler(req, res) {
     const currency = params.mc_currency;
     const txnId = params.txn_id;
     const buyerEmail = String(params.custom || params.payer_email || "").trim();
+    const firstName = String(params.first_name || "").trim();
 
     if (status !== "Completed") return res.status(200).send("OK");
     if (receiver !== RECEIVER) return res.status(200).send("OK");
@@ -98,7 +99,7 @@ export default async function handler(req, res) {
     try {
       const pdf = await downloadCurrentPdf(supa, state);
       if (pdf && buyerEmail.includes("@")) {
-        await sendPicksEmail({ to: buyerEmail, pdfBuffer: pdf.buffer, pdfName: pdf.name });
+        await sendPicksEmail({ to: buyerEmail, pdfBuffer: pdf.buffer, pdfName: pdf.name, firstName });
         await supa
           .from("sales")
           .update({ delivered: true, delivered_at: new Date().toISOString() })
