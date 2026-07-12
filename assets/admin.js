@@ -143,16 +143,13 @@
     $("publishBtn").disabled = true;
     try {
       const autoTakedownAt = computeAutoTakedown($("autoTime").value);
-      const { state, notified } = await authFetch("/api/admin/publish", {
+      const { state } = await authFetch("/api/admin/publish", {
         method: "POST",
         body: JSON.stringify({ autoTakedownAt }),
       });
       currentState = state;
       renderState();
-      showToast(
-        "Picks are LIVE" +
-          (notified ? ` — ${notified} subscriber${notified > 1 ? "s" : ""} notified.` : ".")
-      );
+      showToast("Picks are LIVE — buyers can purchase now.");
     } catch (err) {
       showToast(err.message);
     } finally {
@@ -183,6 +180,28 @@
       showToast(err.message);
     } finally {
       $("testBtn").disabled = false;
+    }
+  });
+
+  $("copyEmailsBtn").addEventListener("click", async () => {
+    $("copyEmailsBtn").disabled = true;
+    try {
+      const { emails } = await authFetch("/api/admin/subscribers");
+      if (!emails || !emails.length) {
+        showToast("No subscribers yet.");
+        return;
+      }
+      const text = emails.join(", ");
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(`Copied ${emails.length} email${emails.length > 1 ? "s" : ""} to clipboard.`);
+      } catch {
+        window.prompt("Copy these emails:", text);
+      }
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      $("copyEmailsBtn").disabled = false;
     }
   });
 
