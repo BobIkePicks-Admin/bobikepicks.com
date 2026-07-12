@@ -191,7 +191,7 @@
         showToast("No subscribers yet.");
         return;
       }
-      const text = emails.join(", ");
+      const text = emails.join("; ");
       try {
         await navigator.clipboard.writeText(text);
         showToast(`Copied ${emails.length} email${emails.length > 1 ? "s" : ""} to clipboard.`);
