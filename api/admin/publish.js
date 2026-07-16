@@ -18,12 +18,18 @@ export default async function handler(req, res) {
       autoTakedownAt = null;
     }
 
+    let picksDate = req.body?.picksDate || null;
+    if (picksDate && !/^\d{4}-\d{2}-\d{2}$/.test(picksDate)) {
+      picksDate = null;
+    }
+
     const { data, error } = await supa
       .from("site_state")
       .update({
         status: "live",
         published_at: new Date().toISOString(),
         auto_takedown_at: autoTakedownAt,
+        picks_date: picksDate,
         updated_at: new Date().toISOString(),
       })
       .eq("id", 1)
