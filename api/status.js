@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       priceCents: state.price_cents,
       publishedAt: state.published_at,
       autoTakedownAt: state.auto_takedown_at,
+      picksDate: state.picks_date,
     });
   } catch (err) {
     res.status(500).json({ error: err.message || "Server error" });
