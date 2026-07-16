@@ -16,6 +16,18 @@
     t._timer = setTimeout(() => t.classList.remove("show"), 2800);
   }
 
+  // Nicely formatted date for the live card. Prefers the date Bob selected
+  // (parsed as a plain local date to avoid off-by-one), else the publish date.
+  function cardDateLabel(state) {
+    const opts = { weekday: "long", month: "long", day: "numeric" };
+    if (state.picksDate && /^\d{4}-\d{2}-\d{2}$/.test(state.picksDate)) {
+      const [y, m, d] = state.picksDate.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString(undefined, opts);
+    }
+    const d = state.publishedAt ? new Date(state.publishedAt) : new Date();
+    return d.toLocaleDateString(undefined, opts);
+  }
+
   function render(state) {
     const live = state.status === "live";
 
@@ -31,10 +43,7 @@
       $("priceVal").textContent = dollars;
       $("btnPrice").textContent = dollars;
 
-      const d = state.publishedAt ? new Date(state.publishedAt) : new Date();
-      $("liveDate").textContent =
-        "Card for " +
-        d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+      $("liveDate").textContent = "Card for " + cardDateLabel(state);
 
       // Fill the PayPal form so it targets THIS origin (works on vercel.app
       // now and on bobikepicks.com after the domain cutover — no edits needed).

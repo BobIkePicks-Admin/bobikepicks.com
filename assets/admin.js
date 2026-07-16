@@ -139,13 +139,27 @@
     return cutoff.toISOString();
   }
 
+  function todayYMD() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  // Pre-fill the picks-date field once (uses the stored date, else today).
+  function prefillPicksDate() {
+    const input = $("picksDate");
+    if (currentState && currentState.picks_date) input.value = currentState.picks_date;
+    else if (!input.value) input.value = todayYMD();
+  }
+
   $("publishBtn").addEventListener("click", async () => {
     $("publishBtn").disabled = true;
     try {
       const autoTakedownAt = computeAutoTakedown($("autoTime").value);
+      const picksDate = $("picksDate").value || null;
       const { state } = await authFetch("/api/admin/publish", {
         method: "POST",
-        body: JSON.stringify({ autoTakedownAt }),
+        body: JSON.stringify({ autoTakedownAt, picksDate }),
       });
       currentState = state;
       renderState();
@@ -333,6 +347,7 @@
     } catch (err) {
       showToast(err.message);
     }
+    prefillPicksDate();
     setInterval(updateCountdown, 1000);
     setInterval(() => loadState().catch(() => {}), 30000);
   }
