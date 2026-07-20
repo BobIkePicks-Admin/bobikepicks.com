@@ -41,7 +41,7 @@
     if (live) {
       const dollars = Math.round((state.priceCents || 1000) / 100);
       $("priceVal").textContent = dollars;
-      $("btnPrice").textContent = dollars;
+      $("btnPrice").textContent = "$" + dollars;
 
       $("liveDate").textContent = "Card for " + cardDateLabel(state);
 
