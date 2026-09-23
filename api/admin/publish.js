@@ -11,7 +11,14 @@ export default async function handler(req, res) {
 
     const supa = getAdminClient();
     const state = await getState(supa);
-    if (!state.pdf_path) throw httpError(400, "Upload today's PDF before publishing.");
+
+    const { count: readyTracks } = await supa
+      .from("tracks")
+      .select("*", { count: "exact", head: true })
+      .not("pdf_path", "is", null);
+    if (!readyTracks) {
+      throw httpError(400, "Upload a picks file for at least one track before publishing.");
+    }
 
     let autoTakedownAt = req.body?.autoTakedownAt || null;
     if (autoTakedownAt && isNaN(new Date(autoTakedownAt).getTime())) {

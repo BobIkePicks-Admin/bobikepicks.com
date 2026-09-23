@@ -15,6 +15,11 @@ export default async function handler(req, res) {
       .order("created_at", { ascending: false })
       .limit(25);
 
+    const { data: tracks } = await supa
+      .from("tracks")
+      .select("id, name, position, pdf_name")
+      .order("position", { ascending: true });
+
     const { count: subscriberCount } = await supa
       .from("notify_list")
       .select("*", { count: "exact", head: true })
@@ -25,6 +30,7 @@ export default async function handler(req, res) {
       email: user.email,
       state,
       sales: sales || [],
+      tracks: tracks || [],
       subscriberCount: subscriberCount || 0,
     });
   } catch (err) {
