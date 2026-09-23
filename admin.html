@@ -47,17 +47,23 @@
         <div id="bannerCountdown"></div>
       </div>
 
-      <!-- Step 1: upload -->
+      <!-- Step 1: tracks & files -->
       <div class="card" style="margin-bottom:22px;">
-        <div class="hd"><h3>1 · Today's picks file</h3></div>
+        <div class="hd"><h3>1 · Tracks &amp; picks files</h3></div>
         <div class="bd">
-          <div class="upload-zone" id="uploadZone">
-            <div class="ic">📄</div>
-            <div id="uploadLabel"><strong>Click to choose today's PDF</strong></div>
-            <div class="muted" id="uploadHint">PDF from your computer — that's the file buyers receive.</div>
-            <div class="fname hidden" id="fileName"></div>
+          <p class="muted" style="margin-top:0;">
+            Upload a PDF for each track racing on this date. Only tracks with a file will be for sale.
+          </p>
+          <table class="sales">
+            <thead><tr><th>Track</th><th>Picks file</th><th></th></tr></thead>
+            <tbody id="tracksBody"></tbody>
+          </table>
+          <div class="row mt">
+            <input type="text" id="newTrackName" placeholder="Add a track (e.g., Saratoga)"
+              style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;font-family:var(--sans);" />
+            <button class="btn btn-primary btn-sm" id="addTrackBtn">Add track</button>
           </div>
-          <input type="file" id="fileInput" accept="application/pdf" class="hidden" />
+          <input type="file" id="trackFileInput" accept="application/pdf" class="hidden" />
         </div>
       </div>
 
@@ -99,7 +105,7 @@
         </div>
         <div class="bd">
           <table class="sales">
-            <thead><tr><th>Buyer email</th><th>Time</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Buyer email</th><th>Track</th><th>Time</th><th>Status</th><th></th></tr></thead>
             <tbody id="salesBody"></tbody>
           </table>
         </div>
