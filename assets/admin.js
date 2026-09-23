@@ -128,7 +128,7 @@
     if (action === "clear") {
       btn.disabled = true;
       try {
-        await authFetch("/api/admin/track-clear", { method: "POST", body: JSON.stringify({ id }) });
+        await authFetch("/api/admin/tracks", { method: "POST", body: JSON.stringify({ action: "clear", id }) });
         showToast("File removed — track is no longer for sale.");
         await loadState();
       } catch (err) {
@@ -141,7 +141,7 @@
       if (!window.confirm("Delete this track (and its file)?")) return;
       btn.disabled = true;
       try {
-        await authFetch("/api/admin/track-delete", { method: "POST", body: JSON.stringify({ id }) });
+        await authFetch("/api/admin/tracks", { method: "POST", body: JSON.stringify({ action: "delete", id }) });
         showToast("Track deleted.");
         await loadState();
       } catch (err) {
@@ -163,9 +163,9 @@
     showToast("Uploading " + file.name + "…");
     try {
       const contentBase64 = await fileToBase64(file);
-      await authFetch("/api/admin/track-upload", {
+      await authFetch("/api/admin/tracks", {
         method: "POST",
-        body: JSON.stringify({ id, filename: file.name, contentBase64 }),
+        body: JSON.stringify({ action: "upload", id, filename: file.name, contentBase64 }),
       });
       showToast("Uploaded: " + file.name);
       await loadState();
@@ -185,7 +185,7 @@
     }
     $("addTrackBtn").disabled = true;
     try {
-      await authFetch("/api/admin/track-add", { method: "POST", body: JSON.stringify({ name }) });
+      await authFetch("/api/admin/tracks", { method: "POST", body: JSON.stringify({ action: "add", name }) });
       showToast("Added " + name + ".");
       $("newTrackName").value = "";
       await loadState();
@@ -276,7 +276,7 @@
   $("copyEmailsBtn").addEventListener("click", async () => {
     $("copyEmailsBtn").disabled = true;
     try {
-      const { emails } = await authFetch("/api/admin/subscribers");
+      const { emails } = await authFetch("/api/admin/mailing", { method: "POST", body: JSON.stringify({ action: "list" }) });
       if (!emails || !emails.length) {
         showToast("No subscribers yet.");
         return;
@@ -303,9 +303,9 @@
     }
     $("addSubBtn").disabled = true;
     try {
-      const { added, invalid } = await authFetch("/api/admin/add-subscribers", {
+      const { added, invalid } = await authFetch("/api/admin/mailing", {
         method: "POST",
-        body: JSON.stringify({ emails }),
+        body: JSON.stringify({ action: "add", emails }),
       });
       let msg = `Added ${added} to the list.`;
       if (invalid && invalid.length) msg += ` (${invalid.length} skipped as invalid.)`;
