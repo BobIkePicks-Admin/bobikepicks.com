@@ -4,7 +4,7 @@
 
    Reused with Bob's classic "Buy Now" button (cmd=_xclick). */
 
-import { getAdminClient, getState, downloadCurrentPdf } from "../lib/supabase.js";
+import { getAdminClient, getState, downloadPdfByPath } from "../lib/supabase.js";
 import { sendPicksEmail } from "../lib/email.js";
 
 const RECEIVER = (process.env.PAYPAL_RECEIVER_EMAIL || "bob@bobikepicks.com").toLowerCase();
@@ -59,6 +59,7 @@ export default async function handler(req, res) {
     const txnId = params.txn_id;
     const buyerEmail = String(params.custom || params.payer_email || "").trim();
     const firstName = String(params.first_name || "").trim();
+    const trackId = String(params.item_number || "").trim();
 
     if (status !== "Completed") return res.status(200).send("OK");
     if (receiver !== RECEIVER) return res.status(200).send("OK");
@@ -77,14 +78,26 @@ export default async function handler(req, res) {
       .maybeSingle();
     if (existing) return res.status(200).send("ALREADY");
 
-    // 4. Record the sale (delivered=false until the email succeeds).
+    // 4. Look up the purchased track (identified by PayPal's item_number).
+    let track = null;
+    if (trackId) {
+      const { data } = await supa
+        .from("tracks")
+        .select("id, name, pdf_path, pdf_name")
+        .eq("id", trackId)
+        .maybeSingle();
+      track = data || null;
+    }
+
+    // 5. Record the sale (delivered=false until the email succeeds).
     const { data: sale, error: insErr } = await supa
       .from("sales")
       .insert({
         email: buyerEmail,
         amount_cents: Math.round(gross * 100),
         paypal_order_id: txnId,
-        pdf_name: state.pdf_name,
+        pdf_name: track?.pdf_name || null,
+        track_name: track?.name || params.item_name || null,
         delivered: false,
       })
       .select("id")
@@ -94,10 +107,10 @@ export default async function handler(req, res) {
       throw insErr;
     }
 
-    // 5. Deliver the PDF. If this fails, the sale stays "pending" so it's
-    //    visible in the admin and can be re-sent later.
+    // 6. Deliver that track's PDF. If this fails, the sale stays "pending"
+    //    so it's visible in the admin and can be re-sent later.
     try {
-      const pdf = await downloadCurrentPdf(supa, state);
+      const pdf = track ? await downloadPdfByPath(supa, track.pdf_path, track.pdf_name) : null;
       if (pdf && buyerEmail.includes("@")) {
         await sendPicksEmail({ to: buyerEmail, pdfBuffer: pdf.buffer, pdfName: pdf.name, firstName });
         await supa

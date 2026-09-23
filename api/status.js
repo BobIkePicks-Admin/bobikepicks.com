@@ -24,6 +24,17 @@ export default async function handler(req, res) {
       if (!error && data) state = data;
     }
 
+    // When live, the buyable tracks are those that have a file uploaded.
+    let tracks = [];
+    if (state.status === "live") {
+      const { data } = await supa
+        .from("tracks")
+        .select("id, name")
+        .not("pdf_path", "is", null)
+        .order("position", { ascending: true });
+      tracks = data || [];
+    }
+
     res.setHeader("Cache-Control", "no-store");
     res.status(200).json({
       status: state.status,
@@ -31,6 +42,7 @@ export default async function handler(req, res) {
       publishedAt: state.published_at,
       autoTakedownAt: state.auto_takedown_at,
       picksDate: state.picks_date,
+      tracks,
     });
   } catch (err) {
     res.status(500).json({ error: err.message || "Server error" });
