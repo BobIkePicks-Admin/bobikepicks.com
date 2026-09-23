@@ -93,30 +93,106 @@
     showLogin();
   });
 
-  // ---------- upload ----------
-  $("uploadZone").addEventListener("click", () => $("fileInput").click());
-  $("fileInput").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      showToast("Please choose a PDF file.");
-      $("fileInput").value = "";
+  // ---------- tracks ----------
+  let uploadTargetTrackId = null;
+
+  function renderTracks(tracks) {
+    const body = $("tracksBody");
+    body.innerHTML = "";
+    (tracks || []).forEach((t) => {
+      const tr = document.createElement("tr");
+      const fileCell = t.pdf_name
+        ? `<span class="pill">✓ ${esc(t.pdf_name)}</span> ` +
+          `<button class="btn btn-ghost btn-sm" data-action="upload" data-id="${t.id}">Replace</button> ` +
+          `<button class="btn btn-ghost btn-sm" data-action="clear" data-id="${t.id}">Remove</button>`
+        : `<button class="btn btn-primary btn-sm" data-action="upload" data-id="${t.id}">Upload PDF</button>`;
+      tr.innerHTML =
+        `<td><strong>${esc(t.name)}</strong></td>` +
+        `<td>${fileCell}</td>` +
+        `<td style="text-align:right;"><button class="btn btn-ghost btn-sm" data-action="delete" data-id="${t.id}" title="Delete track">🗑</button></td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  $("tracksBody").addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const id = btn.getAttribute("data-id");
+    const action = btn.getAttribute("data-action");
+
+    if (action === "upload") {
+      uploadTargetTrackId = id;
+      $("trackFileInput").click();
       return;
     }
-    $("uploadLabel").innerHTML = "<strong>Uploading…</strong>";
+    if (action === "clear") {
+      btn.disabled = true;
+      try {
+        await authFetch("/api/admin/track-clear", { method: "POST", body: JSON.stringify({ id }) });
+        showToast("File removed — track is no longer for sale.");
+        await loadState();
+      } catch (err) {
+        showToast(err.message);
+        btn.disabled = false;
+      }
+      return;
+    }
+    if (action === "delete") {
+      if (!window.confirm("Delete this track (and its file)?")) return;
+      btn.disabled = true;
+      try {
+        await authFetch("/api/admin/track-delete", { method: "POST", body: JSON.stringify({ id }) });
+        showToast("Track deleted.");
+        await loadState();
+      } catch (err) {
+        showToast(err.message);
+        btn.disabled = false;
+      }
+    }
+  });
+
+  $("trackFileInput").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    const id = uploadTargetTrackId;
+    if (!file || !id) return;
+    if (file.type !== "application/pdf") {
+      showToast("Please choose a PDF file.");
+      $("trackFileInput").value = "";
+      return;
+    }
+    showToast("Uploading " + file.name + "…");
     try {
       const contentBase64 = await fileToBase64(file);
-      await authFetch("/api/admin/upload", {
+      await authFetch("/api/admin/track-upload", {
         method: "POST",
-        body: JSON.stringify({ filename: file.name, contentBase64 }),
+        body: JSON.stringify({ id, filename: file.name, contentBase64 }),
       });
       showToast("Uploaded: " + file.name);
       await loadState();
     } catch (err) {
       showToast(err.message);
-      renderState();
     } finally {
-      $("fileInput").value = "";
+      $("trackFileInput").value = "";
+      uploadTargetTrackId = null;
+    }
+  });
+
+  $("addTrackBtn").addEventListener("click", async () => {
+    const name = $("newTrackName").value.trim();
+    if (!name) {
+      showToast("Enter a track name.");
+      return;
+    }
+    $("addTrackBtn").disabled = true;
+    try {
+      await authFetch("/api/admin/track-add", { method: "POST", body: JSON.stringify({ name }) });
+      showToast("Added " + name + ".");
+      $("newTrackName").value = "";
+      await loadState();
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      $("addTrackBtn").disabled = false;
     }
   });
 
@@ -254,20 +330,6 @@
     $("bannerDot").textContent = live ? "🟢" : "🔴";
     $("bannerText").textContent = live ? "Picks are LIVE" : "Picks are OFF";
 
-    const zone = $("uploadZone");
-    if (s.pdf_name) {
-      zone.classList.add("has-file");
-      $("uploadLabel").innerHTML = "<strong>✓ File ready</strong>";
-      $("uploadHint").classList.add("hidden");
-      $("fileName").textContent = s.pdf_name;
-      $("fileName").classList.remove("hidden");
-    } else {
-      zone.classList.remove("has-file");
-      $("uploadLabel").innerHTML = "<strong>Click to choose today's PDF</strong>";
-      $("uploadHint").classList.remove("hidden");
-      $("fileName").classList.add("hidden");
-    }
-
     $("publishBtn").classList.toggle("hidden", live);
     $("takedownBtn").classList.toggle("hidden", !live);
     updateCountdown();
@@ -306,6 +368,7 @@
       });
       tr.innerHTML =
         "<td>" + esc(sale.email) + "</td>" +
+        "<td>" + esc(sale.track_name || "—") + "</td>" +
         "<td>" + t + "</td>" +
         "<td>" +
         (sale.delivered
@@ -323,6 +386,7 @@
     const data = await authFetch("/api/admin/state");
     currentState = data.state;
     renderSales(data.sales);
+    renderTracks(data.tracks);
     $("subCount").textContent = (data.subscriberCount || 0) + " subscribers";
     renderState();
   }

@@ -28,8 +28,46 @@
     return d.toLocaleDateString(undefined, opts);
   }
 
+  function attr(s) {
+    return String(s).replace(/[&<>"]/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+    );
+  }
+
+  // Build a PayPal "Buy Now" form for each available track. item_number
+  // carries the track id so the IPN knows which PDF to deliver; the shared
+  // email field is copied into `custom` on submit.
+  function renderTracks(state) {
+    const origin = window.location.origin;
+    const dollars = Math.round((state.priceCents || 1000) / 100);
+    const amount = dollars.toFixed(2);
+    const list = $("trackList");
+    list.innerHTML = "";
+    (state.tracks || []).forEach((t) => {
+      const form = document.createElement("form");
+      form.className = "track-buy";
+      form.action = "https://www.paypal.com/cgi-bin/webscr";
+      form.method = "post";
+      form.innerHTML =
+        '<input type="hidden" name="cmd" value="_xclick" />' +
+        '<input type="hidden" name="business" value="bob@bobikepicks.com" />' +
+        `<input type="hidden" name="item_name" value="BobIkePicks — ${attr(t.name)}" />` +
+        `<input type="hidden" name="item_number" value="${attr(t.id)}" />` +
+        '<input type="hidden" name="currency_code" value="USD" />' +
+        '<input type="hidden" name="no_shipping" value="1" />' +
+        `<input type="hidden" name="amount" value="${amount}" />` +
+        `<input type="hidden" name="notify_url" value="${origin}/api/paypal-ipn" />` +
+        `<input type="hidden" name="return" value="${origin}/thanks.html" />` +
+        `<input type="hidden" name="cancel_return" value="${origin}/" />` +
+        '<input type="hidden" name="custom" value="" />' +
+        `<button type="submit" class="btn btn-paypal">${attr(t.name)} — Pay $${dollars}</button>`;
+      list.appendChild(form);
+    });
+  }
+
   function render(state) {
-    const live = state.status === "live";
+    const hasTracks = Array.isArray(state.tracks) && state.tracks.length > 0;
+    const live = state.status === "live" && hasTracks;
 
     const badge = $("statusBadge");
     badge.className = "badge " + (live ? "live" : "off");
@@ -39,19 +77,9 @@
     $("offState").classList.toggle("hidden", live);
 
     if (live) {
-      const dollars = Math.round((state.priceCents || 1000) / 100);
-      $("priceVal").textContent = dollars;
-      $("btnPrice").textContent = "$" + dollars;
-
+      $("priceVal").textContent = Math.round((state.priceCents || 1000) / 100);
       $("liveDate").textContent = "Card for " + cardDateLabel(state);
-
-      // Fill the PayPal form so it targets THIS origin (works on vercel.app
-      // now and on bobikepicks.com after the domain cutover — no edits needed).
-      const origin = window.location.origin;
-      $("ppAmount").value = (Math.round(state.priceCents || 1000) / 100).toFixed(2);
-      $("ppNotify").value = origin + "/api/paypal-ipn";
-      $("ppReturn").value = origin + "/thanks.html";
-      $("ppCancel").value = origin + "/";
+      renderTracks(state);
     }
   }
 
@@ -66,8 +94,19 @@
     }
   }
 
-  // The buy button is a native PayPal form submit (see index.html #buyForm).
-  // The email field is `custom`, carried through PayPal and returned in the IPN.
+  // Each track button is a native PayPal form submit. Validate the shared
+  // email and copy it into that form's `custom` field before it goes.
+  $("trackList").addEventListener("submit", (e) => {
+    const email = $("email").value.trim();
+    if (!email || !email.includes("@")) {
+      e.preventDefault();
+      showToast("Enter a valid email so we can send the PDF.");
+      $("email").focus();
+      return;
+    }
+    const custom = e.target.querySelector('input[name="custom"]');
+    if (custom) custom.value = email;
+  });
 
   // --- notify-me signup (storefront closed) ---
   $("notifyBtn").addEventListener("click", async () => {

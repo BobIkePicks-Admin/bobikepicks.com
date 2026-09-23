@@ -253,6 +253,10 @@ input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 
 .fineprint { font-size: 12px; color: var(--muted); text-align: center; margin-top: 12px; }
 
+/* Per-track buy buttons on the storefront */
+.track-buy { margin: 0 0 10px; }
+.track-buy:last-child { margin-bottom: 0; }
+
 /* OFF state */
 .off-state { text-align: center; padding: 8px 0; }
 .off-state .lock { font-size: 34px; }
