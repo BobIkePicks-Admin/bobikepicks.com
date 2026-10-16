@@ -253,9 +253,21 @@ input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 
 .fineprint { font-size: 12px; color: var(--muted); text-align: center; margin-top: 12px; }
 
-/* Per-track buy buttons on the storefront */
-.track-buy { margin: 0 0 10px; }
-.track-buy:last-child { margin-bottom: 0; }
+/* Track tabs on the storefront buy card */
+.track-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 2px; }
+.track-tab {
+  padding: 7px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.track-tab:hover { background: #f1f3f2; }
+.track-tab.active { background: var(--dark); color: #fff; border-color: var(--dark); }
 
 /* OFF state */
 .off-state { text-align: center; padding: 8px 0; }

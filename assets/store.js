@@ -1,12 +1,46 @@
 /* ===========================================================
    Storefront logic (live).
-   Asks the backend (/api/status) whether picks are available and
-   shows the buy box or the "not available" box accordingly.
-   Auto-take-down is enforced server-side; we just re-poll.
+   Tabs let the buyer pick a track; the headline, bullets, and the
+   PayPal buy button all update to the selected track. Only tracks
+   with an uploaded file are shown (from /api/status).
    =========================================================== */
 
 (function () {
   const $ = (id) => document.getElementById(id);
+
+  // ---- Per-track card copy --------------------------------------------
+  // KEY = the EXACT track name you type in the admin. Tracks not listed
+  // here fall back to DEFAULT_BULLETS. To add copy for another track,
+  // copy a block and change the name + bullet lines.
+  const TRACK_CONTENT = {
+    "Coast to Coast": [
+      "Santa Anita/Gulfstream Park",
+      "Low 15% takeout (retail bet only, no CAWs)",
+      "Brief analysis of each race",
+      "$1 Pick 5 ticket",
+    ],
+    "Breeders' Cup Day 1": [
+      "Selections for BC races",
+      "Best Plays",
+      "Pick 5 ticket",
+    ],
+    "Breeders' Cup Day 2": [
+      "Selections for BC races",
+      "Best Plays",
+      "Pick 5 ticket",
+    ],
+  };
+  const DEFAULT_BULLETS = [
+    "Full-card selections",
+    "Best Play races with betting strategy",
+    "Pick 5 ticket",
+    "Emailed to you automatically after payment",
+  ];
+  // ---------------------------------------------------------------------
+
+  let currentState = null;
+  let selectedTrackId = null;
+  let lastSig = "";
 
   function showToast(msg) {
     const t = $("toast");
@@ -16,8 +50,8 @@
     t._timer = setTimeout(() => t.classList.remove("show"), 2800);
   }
 
-  // Nicely formatted date for the live card. Prefers the date Bob selected
-  // (parsed as a plain local date to avoid off-by-one), else the publish date.
+  // Formatted date. Prefers the date Bob selected (parsed as a plain local
+  // date to avoid off-by-one), else the publish date.
   function cardDateLabel(state) {
     const opts = { weekday: "long", month: "long", day: "numeric" };
     if (state.picksDate && /^\d{4}-\d{2}-\d{2}$/.test(state.picksDate)) {
@@ -34,38 +68,65 @@
     );
   }
 
-  // Build a PayPal "Buy Now" form for each available track. item_number
-  // carries the track id so the IPN knows which PDF to deliver; the shared
-  // email field is copied into `custom` on submit.
-  function renderTracks(state) {
-    const origin = window.location.origin;
-    const dollars = Math.round((state.priceCents || 1000) / 100);
-    const amount = dollars.toFixed(2);
-    const list = $("trackList");
-    list.innerHTML = "";
-    (state.tracks || []).forEach((t) => {
-      const form = document.createElement("form");
-      form.className = "track-buy";
-      form.action = "https://www.paypal.com/cgi-bin/webscr";
-      form.method = "post";
-      form.innerHTML =
-        '<input type="hidden" name="cmd" value="_xclick" />' +
-        '<input type="hidden" name="business" value="bob@bobikepicks.com" />' +
-        `<input type="hidden" name="item_name" value="BobIkePicks — ${attr(t.name)}" />` +
-        `<input type="hidden" name="item_number" value="${attr(t.id)}" />` +
-        '<input type="hidden" name="currency_code" value="USD" />' +
-        '<input type="hidden" name="no_shipping" value="1" />' +
-        `<input type="hidden" name="amount" value="${amount}" />` +
-        `<input type="hidden" name="notify_url" value="${origin}/api/paypal-ipn" />` +
-        `<input type="hidden" name="return" value="${origin}/thanks.html" />` +
-        `<input type="hidden" name="cancel_return" value="${origin}/" />` +
-        '<input type="hidden" name="custom" value="" />' +
-        `<button type="submit" class="btn btn-paypal">${attr(t.name)} — Pay $${dollars}</button>`;
-      list.appendChild(form);
+  // Look up a track's bullets forgivingly — a curly vs straight apostrophe,
+  // extra spaces, or casing won't break the match; unknown tracks use default.
+  function bulletsFor(name) {
+    if (TRACK_CONTENT[name]) return TRACK_CONTENT[name];
+    const norm = (s) => s.toLowerCase().replace(/[‘’']/g, "'").replace(/\s+/g, " ").trim();
+    const key = Object.keys(TRACK_CONTENT).find((k) => norm(k) === norm(name));
+    return key ? TRACK_CONTENT[key] : DEFAULT_BULLETS;
+  }
+
+  // Build one tab per available track. A single track shows no tab row
+  // (the headline already names it).
+  function renderTabs() {
+    const tabs = $("trackTabs");
+    tabs.innerHTML = "";
+    const many = currentState.tracks.length > 1;
+    tabs.style.display = many ? "flex" : "none";
+    if (!many) return;
+
+    currentState.tracks.forEach((t) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "track-tab" + (t.id === selectedTrackId ? " active" : "");
+      b.textContent = t.name;
+      b.dataset.id = t.id;
+      b.addEventListener("click", () => {
+        selectedTrackId = t.id;
+        tabs.querySelectorAll(".track-tab").forEach((el) =>
+          el.classList.toggle("active", el.dataset.id === t.id)
+        );
+        selectTrack(t.id);
+      });
+      tabs.appendChild(b);
     });
   }
 
+  // Update the headline, bullets, and PayPal form for the chosen track.
+  function selectTrack(id) {
+    const state = currentState;
+    const track = state.tracks.find((t) => t.id === id);
+    if (!track) return;
+
+    $("liveDate").textContent = track.name + " for " + cardDateLabel(state);
+
+    const bullets = bulletsFor(track.name);
+    $("trackBullets").innerHTML = bullets.map((b) => `<li>${attr(b)}</li>`).join("");
+
+    const origin = window.location.origin;
+    const dollars = Math.round((state.priceCents || 1000) / 100);
+    $("ppItemName").value = "BobIkePicks — " + track.name;
+    $("ppItemNumber").value = track.id;
+    $("ppAmount").value = dollars.toFixed(2);
+    $("ppNotify").value = origin + "/api/paypal-ipn";
+    $("ppReturn").value = origin + "/thanks.html";
+    $("ppCancel").value = origin + "/";
+    $("payBtn").textContent = "Buy " + track.name + " — $" + dollars;
+  }
+
   function render(state) {
+    currentState = state;
     const hasTracks = Array.isArray(state.tracks) && state.tracks.length > 0;
     const live = state.status === "live" && hasTracks;
 
@@ -76,11 +137,25 @@
     $("liveState").classList.toggle("hidden", !live);
     $("offState").classList.toggle("hidden", live);
 
-    if (live) {
-      $("priceVal").textContent = Math.round((state.priceCents || 1000) / 100);
-      $("liveDate").textContent = "Card for " + cardDateLabel(state);
-      renderTracks(state);
+    if (!live) {
+      lastSig = "off";
+      return;
     }
+
+    $("priceVal").textContent = Math.round((state.priceCents || 1000) / 100);
+
+    // Only rebuild when the track set or date actually changes — so a 30s
+    // poll doesn't yank the buyer off the tab they're looking at.
+    const sig =
+      "live:" + state.tracks.map((t) => t.id).join(",") + ":" + (state.picksDate || state.publishedAt || "");
+    if (sig === lastSig) return;
+    lastSig = sig;
+
+    if (!state.tracks.some((t) => t.id === selectedTrackId)) {
+      selectedTrackId = state.tracks[0].id;
+    }
+    renderTabs();
+    selectTrack(selectedTrackId);
   }
 
   async function refresh() {
@@ -89,14 +164,13 @@
       if (!res.ok) throw new Error("status " + res.status);
       render(await res.json());
     } catch (err) {
-      // On error, fail safe to the closed state.
       render({ status: "off" });
     }
   }
 
-  // Each track button is a native PayPal form submit. Validate the shared
-  // email and copy it into that form's `custom` field before it goes.
-  $("trackList").addEventListener("submit", (e) => {
+  // The buy button is a native PayPal form submit. Validate the shared
+  // email and copy it into `custom` before it goes.
+  $("buyForm").addEventListener("submit", (e) => {
     const email = $("email").value.trim();
     if (!email || !email.includes("@")) {
       e.preventDefault();
@@ -104,8 +178,7 @@
       $("email").focus();
       return;
     }
-    const custom = e.target.querySelector('input[name="custom"]');
-    if (custom) custom.value = email;
+    e.target.querySelector('input[name="custom"]').value = email;
   });
 
   // --- notify-me signup (storefront closed) ---
